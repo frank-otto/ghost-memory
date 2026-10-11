@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#14061f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Ghost Memory</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E👻%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!-- painted backdrop: visible from the very first paint, before WebGL is up -->
+<div id="paint"><div class="moon"></div><div class="hills"></div><div class="fogp"></div><div class="witchS"></div></div>
+<canvas id="gl"></canvas>
+<canvas id="fx2d"></canvas>
+<div id="flash"></div>
+<div id="vignette"></div>
+
+<div id="hud" class="hidden">
+  <div class="hud-left glass">
+    <div id="scoreN">0</div>
+    <div class="sub"><span data-i18n="pairs">Pairs</span> <span id="pairsN">0/0</span></div>
+    <div id="comboN"></div>
+  </div>
+  <div id="hudMid" class="glass">
+    <div id="lvName"></div>
+    <div id="hudStats"><span><span data-i18n="moves">Moves</span> <b id="movesN">0</b></span><span class="tm solo"><span data-i18n="time">Time</span> <b id="timeN">0:00</b></span></div>
+    <div id="twists"></div>
+    <div id="turnBar"><div id="tp0"></div><div id="tp1"></div></div>
+  </div>
+  <div class="right" style="display:flex;gap:8px">
+    <button id="btnHelp2" class="icon glass" aria-label="Help">?</button>
+    <button id="btnMute" class="icon glass" aria-label="Mute">🔊</button>
+    <button id="btnPause" class="icon glass" aria-label="Pause">⏸</button>
+  </div>
+</div>
+<div id="banner"></div>
+
+<div id="start" class="screen">
+  <div class="titleBlock">
+    <div class="kicker" data-i18n="kicker">A moonlit graveyard memory game</div>
+    <h1 class="title"><span class="t1">GHOST</span><span class="t2">MEMORY</span></h1>
+    <div class="tag" data-i18n="tag"></div>
+  </div>
+  <div class="startCard glass">
+    <div class="lblRow" data-i18n="level">Level</div>
+    <div class="levels" id="levels"></div>
+    <div class="modeRow"><button id="btnPlay" class="big"><span data-i18n="play">PLAY</span></button><button id="btnPlay2" class="big"><span data-i18n="play2">2 PLAYERS</span></button></div>
+    <div class="names"><span data-i18n="mode2">2-player names</span><input id="n1" maxlength="14" value="Player 1"><span data-i18n="vs">vs</span><input id="n2" maxlength="14" value="Player 2"></div>
+    <div class="how" data-i18n-html="how"></div>
+    <div class="row">
+      <label class="pill"><input type="checkbox" id="chkKids"><span data-i18n="kids">Kids mode</span></label>
+      <div class="seg" id="langSeg"><button data-lang="en">EN</button><button data-lang="de">DE</button></div>
+      <button id="btnSettings" class="pill" data-i18n="settings">⚙ Settings</button>
+      <button id="btnHelp" class="pill">? <span data-i18n="help">How to play</span></button>
+    </div>
+    <div class="best"><span data-i18n="best">Best</span>: <b id="bestStart">0</b></div>
+  </div>
+</div>
+
+<div id="settings" class="modal hidden">
+  <div class="glass panel">
+    <h2 data-i18n="settings">Settings</h2>
+    <div class="field"><span data-i18n="quality">Quality</span>
+      <div class="seg" id="qualSeg"><button data-q="low" data-i18n="q_low">Low</button><button data-q="mid" data-i18n="q_mid">Medium</button><button data-q="high" data-i18n="q_high">High</button><button data-q="ultra" data-i18n="q_ultra">Ultra</button></div>
+    </div>
+    <div class="hint" id="qualHint"></div>
+    <div class="field"><span data-i18n="music">Music</span><input type="range" id="volMusic" min="0" max="100" value="60"></div>
+    <div class="field"><span data-i18n="sfx">Sound effects</span><input type="range" id="volSfx" min="0" max="100" value="90"></div>
+    <div class="field"><label class="pill"><input type="checkbox" id="chkMute"><span data-i18n="mute">Mute all</span></label>
+      <label class="pill"><input type="checkbox" id="chkKids2"><span data-i18n="kids">Kids mode</span></label></div>
+    <div class="field"><span data-i18n="lang">Language</span><div class="seg" id="langSeg2"><button data-lang="en">EN</button><button data-lang="de">DE</button></div></div>
+    <button id="btnCloseSettings" class="mid" data-i18n="close">Done</button>
+  </div>
+</div>
+
+<div id="tut" class="modal hidden">
+  <div class="glass panel">
+    <h2 data-i18n="help">How to play</h2>
+    <div class="tutGrid">
+      <div><em>🪦</em><b data-i18n="tut1t"></b><span data-i18n="tut1"></span></div>
+      <div><em>👻👻</em><b data-i18n="tut2t"></b><span data-i18n="tut2"></span></div>
+      <div><em>✨</em><b data-i18n="tut3t"></b><span data-i18n="tut3"></span></div>
+      <div><em>🌫️</em><b data-i18n="tut4t"></b><span data-i18n="tut4"></span></div>
+    </div>
+    <div class="tutBtns"><button id="btnTutGo" class="big" data-i18n="tutGo">Got it — PLAY!</button><button id="btnTutSkip" class="pill" data-i18n="tutSkip">Skip</button></div>
+  </div>
+</div>
+
+<div id="pauseScr" class="modal hidden"><div class="glass panel"><h2 data-i18n="paused">Paused</h2><button id="btnResume" class="big" data-i18n="resume">RESUME</button><button id="btnQuit" class="mid" data-i18n="quit">Quit game</button></div></div>
+
+<div id="lvDone" class="modal hidden"><div class="glass panel">
+  <h2 data-i18n="levelDone">LEVEL CLEAR!</h2>
+  <div class="stars" id="lvStars"><span>⭐</span><span>⭐</span><span>⭐</span></div>
+  <div id="lvStats"></div>
+  <button id="btnNext" class="big" data-i18n="next">NEXT LEVEL ▶</button>
+</div></div>
+
+<div id="end" class="screen hidden">
+  <div id="endCard" class="glass">
+    <div class="endTitle" id="endTitle">ALL GHOSTS FOUND!</div>
+    <div id="endDuel"></div>
+    <div id="endScore">0</div>
+    <div id="endStars"></div>
+    <div id="newBest" class="hidden" data-i18n="newBest">NEW BEST!</div>
+    <div id="rank"></div>
+    <div class="stats">
+      <div><b id="stPairs">0</b><span data-i18n="pairs">pairs</span></div>
+      <div><b id="stMoves">0</b><span data-i18n="stMoves">moves</span></div>
+      <div><b id="stTime">0:00</b><span data-i18n="stTime">time</span></div>
+      <div><b id="stCombo">x0</b><span data-i18n="stCombo">best combo</span></div>
+    </div>
+    <div class="bestRow"><span data-i18n="best">Best</span>: <b id="stBest">0</b> · <span data-i18n="stScore">score</span></div>
+    <div class="nameRow"><span data-i18n="name">Name</span><input id="name" maxlength="18" value="Player" autocomplete="off"></div>
+    <div class="shareBox">
+      <div class="shareHead"><span data-i18n="shareT">Share text</span><div class="seg small" id="shareLang"><button data-sl="en">EN</button><button data-sl="de">DE</button></div></div>
+      <div id="shareText"></div>
+    </div>
+    <div class="btns">
+      <button id="btnShare" class="mid">📋 <span data-i18n="share">Copy share text</span></button>
+      <button id="btnShot" class="mid">📸 <span data-i18n="shot">Download end card</span></button>
+      <button id="btnReplay" class="big"><span data-i18n="replay">↻ PLAY AGAIN</span></button>
+      <button id="btnMenu" class="pill" data-i18n="menu">Menu</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script src="js/sounds-src.js"></script>
+<script src="js/game.bundle.js"></script>
+</body>
+</html>
