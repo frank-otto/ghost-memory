@@ -2,7 +2,7 @@
 
 A cozy-spooky 3D memory game in a moonlit graveyard. Flip gravestones, meet 15 cute ghosts, and find the pairs: a sneaky ghost swaps your stones, fog rounds hide the board, a golden pumpkin pair is worth +500, and there's a Kids mode plus a 2-player duel on one device.
 
-**▶ Play in your browser:** https://frank-otto.github.io/ghost-memory/
+**▶ Play in your browser:** [online version (GitHub Pages)](https://frank-otto.github.io/ghost-memory/)
 
 [![Ghost Memory gameplay video](media/poster.jpg)](media/ghost-memory-x.mp4)
 
