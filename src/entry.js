@@ -7,7 +7,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { createWorld, updateWorld, QUALITY } from './world.js';
-import { TYPES, ICON, createGhost, updateGhost, setExpr, createStone, updateStone, tintHole, glowOf } from './ghosts.js';
+import { TYPES, ICON, createGhost, updateGhost, setExpr, createStone, updateStone, tintHole, glowOf, disposeStone, disposeGhost } from './ghosts.js';
 import * as FX from './fx.js';
 import * as A from './audio.js';
 import { T, setLang, getLang, applyI18n, rankFor, shareText, fmt, mmss } from './i18n.js';
@@ -81,7 +81,7 @@ function applyQuality(qn, user = false) {
 }
 // ---------------- board ----------------
 function levelDef() { return (S.kids ? KLEVELS : LEVELS)[S.lvl] || LEVELS[0]; }
-function clearBoard() { for (const c of S.cards) { board.remove(c.stone.root); board.remove(c.gh.root); } S.cards = []; S.sel = []; S.evalT = 0; S.unlockT = 0; S.busy = 0; }
+function clearBoard() { for (const c of S.cards) { board.remove(c.stone.root); board.remove(c.gh.root); disposeStone(c.stone); disposeGhost(c.gh); } S.cards = []; S.sel = []; S.evalT = 0; S.unlockT = 0; S.busy = 0; }
 function buildBoard(def, seedTypes) {
   clearBoard();
   const n = def.c * def.r, pairs = n / 2; S.pairs = pairs; S.pairsFound = 0;
@@ -269,7 +269,8 @@ function setFog(on) { if (S.fogOn === on) return; S.fogOn = on; if (on) { S.log.
 // ---------------- rounds ----------------
 function startGame(mode = 'solo', lvl = S.startLvl) {
   A.unlockAudio();
-  if (!store.get('gm-tut', false) && !window.__gmNoTut) { tutOpen(() => startGame(mode, lvl)); return; }
+  if (document.body.classList.contains('sheet')) sheet(false);
+  S.hintArm = store.get('gm-hints', 0) < 2 && !window.__gmNoTut;  // the old blocking first-run tutorial → a non-blocking hint once the peek ends
   S.mode = mode; S.startLvl = lvl; S.lvl = lvl; S.total = 0; S.totalMoves = 0; S.totalTime = 0; S.totalPairs = 0; S.starsSum = 0; S.starsMax = 0; S.lvStars = []; S.bestCombo = 0; S.gold = false;
   for (const k in S.log) S.log[k] = 0;
   S.players[0] = { name: ($('n1').value || 'Player 1').trim(), pairs: 0, score: 0 }; S.players[1] = { name: ($('n2').value || 'Player 2').trim(), pairs: 0, score: 0 }; S.turn = 0;
@@ -290,7 +291,9 @@ function startLevel() {
   if (S.mode === 'two') { banner(T(def.name), S.players[0].name + T('turn')); }
   updateHud();
 }
-function endPeek() { for (const c of S.cards) { if (c.mode === 'peek') { setMode(c, 'sink'); c.t = 0.1; } c.stone.target = 0; } A.sfx.sink(); }
+function showHint() { const h = $('hint'); h.textContent = T(document.body.classList.contains('touch') ? 'hintTap' : 'hintKeys'); h.classList.add('show'); S.hintOn = true; clearTimeout(showHint._t); showHint._t = setTimeout(hideHint, 6500); }
+function hideHint() { if (!S.hintOn) return; S.hintOn = false; $('hint').classList.remove('show'); }
+function endPeek() { if (S.hintArm) { S.hintArm = false; store.set('gm-hints', store.get('gm-hints', 0) + 1); showHint(); } for (const c of S.cards) { if (c.mode === 'peek') { setMode(c, 'sink'); c.t = 0.1; } c.stone.target = 0; } A.sfx.sink(); }
 function stars() { if (S.kids) return S.moves <= S.pairs * 2 ? 3 : 2; const p = S.pairs; return S.moves <= Math.ceil(p * 1.55) ? 3 : S.moves <= Math.ceil(p * 2.2) ? 2 : 1; }
 function levelComplete() {
   if (S.state !== 'play') return;
@@ -345,7 +348,7 @@ function attract(keepState) {
 }
 function curRes() { const r = S.endR || result(); if (!r.two) r.name = (S.nameV || 'Player').trim() || 'Player'; return r; }
 function updateShare() { $('shareText').textContent = shareText(curRes(), S.shareLang); document.querySelectorAll('#shareLang button').forEach(b => b.classList.toggle('on', b.dataset.sl === S.shareLang)); }
-// ---------------- attract demo AI (also drives the background behind menus) ----------------
+// ---------------- attract demo autopilot (also drives the background behind menus) ----------------
 function ai(dt) {
   S.aiT -= dt; if (S.aiT > 0 || S.busy || S.sel.length >= 2 || S.swapAnim) return;
   const down = S.cards.filter(c => c.state === 'down'); if (!down.length) { attract(true); return; }
@@ -362,10 +365,12 @@ function cardAt(x, y) {
   const hits = ray.intersectObjects(S.cards.map(c => c.stone.hit), false); return hits.length ? S.cards.find(c => c.stone.hit === hits[0].object) : null;
 }
 canvas.addEventListener('pointermove', ev => { cam.px = ev.clientX / window.innerWidth * 2 - 1; cam.py = ev.clientY / window.innerHeight * 2 - 1; if (S.state !== 'play') return; hoverC = cardAt(ev.clientX, ev.clientY); canvas.style.cursor = hoverC && hoverC.state === 'down' ? 'pointer' : 'default'; });
-canvas.addEventListener('pointerdown', ev => { if (S.state !== 'play') return; if (ev.pointerType !== 'mouse') document.body.classList.add('touch'); const c = cardAt(ev.clientX, ev.clientY); if (c) { hoverC = c; S.focus = S.cards.indexOf(c); flip(c); } });
+canvas.addEventListener('pointerdown', ev => { if (S.state !== 'play') return; if (S.hintOn && S.peekT <= 0) setTimeout(hideHint, 700); if (ev.pointerType !== 'mouse') document.body.classList.add('touch'); const c = cardAt(ev.clientX, ev.clientY); if (c) { hoverC = c; S.focus = S.cards.indexOf(c); flip(c); } });
 const keyFocus = { on: false };
 window.addEventListener('keydown', ev => {
+  if (document.body.classList.contains('sheet')) { if (ev.key === 'Escape') { ev.preventDefault(); sheet(false); } return; }
   if (ev.key === '?') { tutOpen(); return; }
+  if ((ev.key === 'Enter' || ev.key === ' ') && S.state === 'attract' && !S.tut && !(document.activeElement && /INPUT|BUTTON/.test(document.activeElement.tagName))) { ev.preventDefault(); startGame('solo', S.startLvl); return; }
   if (S.state !== 'play' || S.paused || S.tut) return;
   const k = ev.key; let f = S.focus;
   if (k === 'ArrowLeft') f -= 1; else if (k === 'ArrowRight') f += 1; else if (k === 'ArrowUp') f -= S.cols; else if (k === 'ArrowDown') f += S.cols;
@@ -436,6 +441,7 @@ function levelButtons() {
   if (S.startLvl >= L.length) S.startLvl = 0;
   $('levels').innerHTML = L.map((d, i) => { const st = store.get('gm-lv-' + (S.kids ? 'k' : '') + i, 0); return `<button data-l="${i}" class="${i === S.startLvl ? 'on' : ''}">${i + 1}. ${T(d.name)} <small>${d.c}×${d.r}${st ? ' ' + '⭐'.repeat(st) : ''}</small></button>`; }).join('');
   $('levels').querySelectorAll('button').forEach(b => b.onclick = () => { S.startLvl = +b.dataset.l; levelButtons(); A.sfx.ui(); });
+  $('playL').textContent = `${T('level')} ${S.startLvl + 1} · ${T(L[S.startLvl].name)}`;
 }
 function refreshTexts() {
   applyI18n(S.kids);
@@ -444,7 +450,7 @@ function refreshTexts() {
   if (S.state === 'play') { const def = levelDef(); $('lvName').textContent = `${T('level')} ${S.lvl + 1} · ${T(def.name)}`; }
 }
 function setKids(on) {
-  S.kids = !!on; store.set('gm-kids', S.kids); $('chkKids').checked = S.kids; $('chkKids2').checked = S.kids; A.setKids(S.kids);
+  S.kids = !!on; store.set('gm-kids', S.kids); $('chkKids').checked = S.kids; A.setKids(S.kids);
   document.body.classList.toggle('kids', S.kids); S.startLvl = 0; refreshTexts();
 }
 $('btnPlay').onclick = () => startGame('solo', S.startLvl);
@@ -453,13 +459,13 @@ $('btnReplay').onclick = () => startGame(S.endR && S.endR.two ? 'two' : 'solo', 
 $('btnMenu').onclick = () => { $('end').classList.add('hidden'); $('start').classList.remove('hidden'); S.state = 'attract'; refreshTexts(); A.sfx.ui(); };
 $('btnNext').onclick = () => nextLevel();
 $('chkKids').onchange = e => setKids(e.target.checked);
-$('chkKids2').onchange = e => setKids(e.target.checked);
 document.querySelectorAll('#langSeg button, #langSeg2 button').forEach(b => b.onclick = () => { setLang(b.dataset.lang); S.shareLang = getLang(); refreshTexts(); A.sfx.ui(); });
 document.querySelectorAll('#shareLang button').forEach(b => b.onclick = () => { S.shareLang = b.dataset.sl; updateShare(); A.sfx.ui(); });
 document.querySelectorAll('#qualSeg button').forEach(b => b.onclick = () => { applyQuality(b.dataset.q, true); qualHint(); A.sfx.ui(); });
-$('btnSettings').onclick = () => $('settings').classList.remove('hidden');
-$('btnCloseSettings').onclick = () => $('settings').classList.add('hidden');
-$('settings').onclick = e => { if (e.target.id === 'settings') $('settings').classList.add('hidden'); };
+function sheet(on) { $('settings').classList.toggle('hidden', !on); $('btnSettings').setAttribute('aria-expanded', on ? 'true' : 'false'); document.body.classList.toggle('sheet', on); if (on) qualHint(); }
+$('btnSettings').onclick = () => { sheet(true); A.sfx.ui(); };
+$('btnCloseSettings').onclick = () => sheet(false); $('btnSetX').onclick = () => sheet(false);
+$('settings').onclick = e => { if (e.target.id === 'settings') sheet(false); };
 $('volMusic').oninput = e => { A.setMusicVolume(e.target.value / 100); store.set('gm-vm', +e.target.value); };
 $('volSfx').oninput = e => { A.setSfxVolume(e.target.value / 100); store.set('gm-vs', +e.target.value); };
 function setMute(m) { A.setMuted(m); $('chkMute').checked = m; $('btnMute').textContent = m ? '🔇' : '🔊'; store.set('gm-mute', !!m); }
@@ -471,7 +477,7 @@ $('btnResume').onclick = () => pause(false);
 $('btnQuit').onclick = () => { pause(false); endGame(true); };
 $('btnShare').onclick = () => copyShare();
 $('btnShot').onclick = () => saveShot();
-$('btnHelp').onclick = () => tutOpen(); $('btnHelp2').onclick = () => tutOpen();
+$('btnHelp').onclick = () => { sheet(false); tutOpen(); }; $('btnHelp2').onclick = () => tutOpen();
 $('btnTutGo').onclick = () => tutClose(); $('btnTutSkip').onclick = () => tutClose();
 $('name').oninput = e => { S.nameV = e.target.value; store.set('gm-name', S.nameV); updateShare(); };
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(true); });
@@ -485,7 +491,7 @@ function trackFps(now) {
   fps.n++; if (!fps.t0) fps.t0 = now;
   if (now - fps.t0 >= 1000) {
     const f = fps.n * 1000 / (now - fps.t0); fps.ema = fps.decided ? fps.ema * 0.6 + f * 0.4 : f; fps.n = 0; fps.t0 = now; fps.samples++; qualHint();
-    if (!fps.decided && fps.samples >= 3) { fps.decided = true; if (!S.qualityUser && !window.__gmNoAutoQ) { const s = suggest(); if (s !== qName()) { applyQuality(s); toast(`${T('suggested')}: ${qLabel(s)} (${Math.round(fps.ema)} fps)`); } } }
+    if (!fps.decided && fps.samples >= 3) { fps.decided = true; if (!S.qualityUser && !window.__gmNoAutoQ) { const s = suggest(); if (s !== qName()) { applyQuality(s); if (S.state === 'play') toast(`${T('suggested')}: ${qLabel(s)} (${Math.round(fps.ema)} fps)`); } } }
     if (fps.decided && fps.ema < 24 && qName() !== 'low' && !window.__gmNoAutoQ) { fps.slow++; if (fps.slow >= 4) { fps.slow = 0; const order = ['low', 'mid', 'high', 'ultra']; const nq = order[Math.max(0, order.indexOf(qName()) - 1)]; applyQuality(nq); toast(`${T('fpsLow')} ${qLabel(nq)}`); } } else fps.slow = 0;
   }
 }
@@ -527,10 +533,10 @@ function frame(now) {
 }
 // ---------------- boot ----------------
 function boot() {
-  setLang(getLang());
+  setLang(getLang(), false);
   $('n1').value = store.get('gm-n1', 'Player 1'); $('n2').value = store.get('gm-n2', 'Player 2');
   const vm = store.get('gm-vm', 60), vs = store.get('gm-vs', 90); $('volMusic').value = vm; $('volSfx').value = vs; A.setMusicVolume(vm / 100); A.setSfxVolume(vs / 100);
-  setMute(!!store.get('gm-mute', false)); $('chkKids').checked = S.kids; $('chkKids2').checked = S.kids; A.setKids(S.kids); document.body.classList.toggle('kids', S.kids);
+  setMute(!!store.get('gm-mute', false)); $('chkKids').checked = S.kids; A.setKids(S.kids); document.body.classList.toggle('kids', S.kids);
   applyQuality(qName()); refreshTexts();
   attract();
   // pre-roll the demo so frame 0 already has ghosts in the air
@@ -552,6 +558,7 @@ window.__gm = {
   sim: (n = 1, dt = 1 / 60) => { for (let i = 0; i < n; i++) tick(dt); return true; },
   render: () => { renderNow(); FX.drawOverlay(O, 0, 0, O.w / 2, O.h / 2); return true; },
   hold: on => { window.__gmHold = !!on; }, shareText: l => shareText(S.endR || result(), l || S.shareLang), copyShare, makeShot: () => makeShot().toDataURL('image/png'),
+  audioState: () => A.audioState(), geo: () => ({ ...renderer.info.memory }), sheet: on => sheet(on),
   tutOpen, tutClose, sounds: () => A.soundsReady().then(n => ({ n, names: A.soundNames() })), sfx: A.sfx, audio: A, quality: () => qName(), fps: () => fps.ema, drawCalls: () => renderer.info.render.calls,
   lineup: () => { clearBoard(); const all = [...TYPES, 'gold']; all.forEach((t, i) => { const g = createGhost(t); g.root.position.set((i % 8 - 3.5) * 1.3, 1.0, ((i / 8) | 0) * 1.6 - 0.8); board.add(g.root); S.cards.push({ i, type: t, stone: createStone(0), gh: g, state: 'x', mode: 'x', t: 0 }); }); S.lineupMode = true; return all.length; }
 };

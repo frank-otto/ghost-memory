@@ -70,6 +70,7 @@ function mats() {
 const glowCache = {};
 function glowMat(hex) { if (!glowCache[hex]) { const c = new THREE.Color(hex); const rgb = `${(c.r * 255) | 0},${(c.g * 255) | 0},${(c.b * 255) | 0}`; glowCache[hex] = glowTexture(`rgba(${rgb},0.9)`, `rgba(${rgb},0.25)`); }
   return new THREE.SpriteMaterial({ map: glowCache[hex], transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.6 }); }
+const SH = {};
 const mesh = (g, m, x, y, z, sx, sy, sz, p) => { const o = new THREE.Mesh(g, m); o.position.set(x, y, z); o.scale.set(sx, sy ?? sx, sz ?? sx); if (p) p.add(o); return o; };
 
 // ---------------- ghost ----------------
@@ -161,7 +162,8 @@ export function createStone(variant = 0) {
   const s = { root, variant, open: 0, target: 0, hover: 0, lift: 0, done: false };
   const mound = mesh(G.sph, M.dirt, 0, -0.02, 0.62, 0.62, 0.12, 0.62, root); mound.receiveShadow = true;
   s.hole = mesh(G.sph, M.hole, 0, 0.0, 0.62, 0.42, 0.04, 0.42, root);
-  s.holeGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('rgba(200,170,255,0.95)', 'rgba(140,80,255,0.25)'), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 }));
+  if (!SH.hole) SH.hole = glowTexture('rgba(200,170,255,0.95)', 'rgba(140,80,255,0.25)');  // one shared texture, not one per stone (GPU leak fix)
+  s.holeGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: SH.hole, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 }));
   s.holeGlow.position.set(0, 0.25, 0.62); s.holeGlow.scale.set(1.8, 1.8, 1); root.add(s.holeGlow);
   s.pivot = new THREE.Group(); s.pivot.position.set(0, 0, -0.12); root.add(s.pivot);
   const geo = [G.stoneSlab, G.stoneCross, G.stonePoint][variant % 3];
@@ -174,7 +176,8 @@ export function createStone(variant = 0) {
   s.candle = new THREE.Group(); s.candle.position.set(0.32, 0.05, 0.95); root.add(s.candle); s.candle.visible = false;
   mesh(G.cyl, M.wax, 0, 0.1, 0, 0.05, 0.2, 0.05, s.candle); s.flame = mesh(G.sph, M.flame, 0, 0.25, 0, 0.025, 0.05, 0.025, s.candle);
   s.cglow = new THREE.Sprite(glowMat(0xffb040)); s.cglow.scale.set(0.8, 0.8, 1); s.cglow.position.set(0, 0.26, 0); s.candle.add(s.cglow);
-  s.hit = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.6, 1.6), new THREE.MeshBasicMaterial({ visible: false })); s.hit.position.set(0, 0.75, 0.3); root.add(s.hit); s.hit.userData.stone = s;
+  if (!SH.hitG) { SH.hitG = new THREE.BoxGeometry(1.4, 1.6, 1.6); SH.hitM = new THREE.MeshBasicMaterial({ visible: false }); }
+  s.hit = new THREE.Mesh(SH.hitG, SH.hitM); s.hit.position.set(0, 0.75, 0.3); root.add(s.hit); s.hit.userData.stone = s;
   return s;
 }
 export function updateStone(s, dt, t) {
@@ -190,5 +193,8 @@ export function updateStone(s, dt, t) {
   s.holeGlow.material.opacity = Math.max(s.open * 0.85, s.done ? 0.25 : 0);
   if (s.candle.visible) { const f = 1 + Math.sin(t * 21 + s.root.position.x) * 0.15; s.flame.scale.set(0.025 * f, 0.05 * f, 0.025 * f); s.cglow.material.opacity = 0.55 * f; }
 }
+// free what a stone / ghost owns (geometries and textures are shared caches and stay)
+export function disposeStone(s) { s.stoneMat.dispose(); s.holeGlow.material.dispose(); s.cglow.material.dispose(); }
+export function disposeGhost(gh) { const seen = new Set(); gh.root.traverse(o => { if (o.isSprite && !seen.has(o.material)) { seen.add(o.material); o.material.dispose(); } }); gh.bodyMat.dispose(); }
 export function tintHole(s, hex) { s.holeGlow.material.color.set(hex); }
 export function glowOf(type) { return (LOOK[type] || LOOK.sheet)[1]; }

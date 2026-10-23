@@ -20,9 +20,10 @@ A 3D Halloween memory game in a moonlit graveyard (Three.js, bundled into one cl
 - Twists: golden pumpkin pair (+500), a cheeky ghost who swaps two unrevealed stones (level 3+), fog rounds (level 4).
 - 2 players on one device (default Player 1 vs Player 2): turns, scores, winner celebration.
 - Kinder-Modus: 3×2 / 4×3 / 4×4, a long peek at the start, no timer, at least 2 stars.
-- EN/DE, quality Niedrig/Mittel/Hoch/Ultra with an FPS-based suggestion, tutorial (also via "?"), 1080×1350 end card PNG, share text EN/DE.
+- **One tap on PLAY** starts level 1 (no tutorial screen; a short hint appears after the first peek). Levels, 2 players, kids mode, sound, quality and "How to play" are in **⚙ Modes & options**.
+- EN/DE (follows the browser language, small DE/EN toggle), quality Niedrig/Mittel/Hoch/Ultra with an FPS-based suggestion, help via "?", 1080×1350 end card PNG, share text EN/DE.
 
 Run: double-click `index.html`, or `start.command` (local server on port 8805).
 Build: `npm install && node tools/build.mjs` (embeds `sounds/*.mp3` as base64 into `js/sounds-src.js`).
-Tests: `python3 test/test_game.py` (Playwright + Chrome) → `test/results.txt`, screenshots in `screenshots/`.
+Tests: `python3 test/test_mobile.py` (phone start screen, WebKit iPhone 13/8/SE + Chromium Pixel 7, portrait + landscape) and `python3 test/test_game.py` (Playwright + Chrome) → `test/results.txt`, screenshots in `screenshots/`.
 Sounds: CC0, see `LICENSES/SOUNDS.md`.

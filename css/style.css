@@ -242,3 +242,86 @@ body.two #endCard .stats, body.two #endStars, body.two .bestRow, body.two #rank 
 .panel { padding: 22px 26px; border-radius: 26px; display: flex; flex-direction: column; gap: 12px; }
 .panel h2 { margin: 0; text-align: center; font-family: Didot, "Bodoni 72", Georgia, serif; font-size: 34px; color: #ffe0a0; text-shadow: 0 0 16px rgba(255,140,40,0.8); }
 @media (max-width: 640px) { #hudMid { min-width: 0; padding: 6px 10px; } #lvName { font-size: 14px; } #hudStats { gap: 8px; font-size: 12px; } #hud .hud-left { min-width: 0; } .modeRow button.big { padding: 12px 26px; } }
+
+/* ---------- ONE-TAP START (2026-10-23): one big PLAY in the thumb zone, levels/2-player/options in a sheet, 44 px targets ---------- */
+#toast:not(.show) { visibility: hidden; }
+#hint { position: fixed; left: 50%; bottom: max(28px, calc(env(safe-area-inset-bottom) + 18px)); transform: translate(-50%, 10px); width: max-content; max-width: min(92vw, 620px); padding: 10px 18px; border-radius: 18px; background: rgba(20,14,46,0.84); border: 1px solid rgba(190,220,255,0.45); box-shadow: 0 0 26px rgba(140,180,255,0.35); font-weight: 800; font-size: clamp(13px, 1.7vw, 16px); text-align: center; line-height: 1.35; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity .35s, transform .35s, visibility 0s .35s; z-index: 7; }
+#hint.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition: opacity .35s, transform .35s; }
+#start .startCard { gap: 12px; }
+#btnPlay.play { min-width: min(78vw, 340px); min-height: 76px; font-size: clamp(30px, 4.4vw, 44px); padding: 12px 56px 10px; letter-spacing: 0.12em; display: flex; flex-direction: column; align-items: center; line-height: 1.05; animation: playGlow 1.6s ease-in-out infinite alternate; }
+#btnPlay.play em { font-style: normal; font-size: 13px; letter-spacing: 0.04em; font-weight: 800; opacity: 0.8; margin-top: 2px; }
+@keyframes playGlow { from { box-shadow: 0 0 0 2px rgba(255,220,160,0.5) inset, 0 6px 0 #8a2e00, 0 0 26px rgba(255,140,30,0.55); } to { box-shadow: 0 0 0 2px rgba(255,235,190,0.8) inset, 0 6px 0 #8a2e00, 0 0 58px rgba(255,150,40,0.95), 0 0 110px rgba(176,77,255,0.45); } }
+#btnPlay.play:active { animation: none; }
+.startRow { gap: 10px; }
+.pill, .seg button, button.mid { min-height: 44px; }
+.seg button { min-width: 48px; }
+.icon, #hud .icon { width: 44px; height: 44px; }
+.sheetHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sheetHead h2 { text-align: left; font-size: clamp(18px, 3vw, 24px); }
+.xBtn { flex: none; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,200,140,0.3); font-size: 18px; }
+#settings .panel { max-height: calc(100dvh - 16px); overflow: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; gap: 10px; }
+#settings .lblRow { margin-bottom: 4px; text-align: left; }
+#settings .levels { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+#settings .levels button { min-height: 44px; padding: 4px 8px; border-radius: 14px; font-size: 13px; line-height: 1.15; }
+.grp2 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+.grp2 .names { flex: 1; justify-content: flex-end; flex-wrap: nowrap; }
+.grp2 .names input { min-height: 44px; width: 0; flex: 1; min-width: 70px; max-width: 130px; }
+.vols { flex-wrap: nowrap; gap: 14px; }
+.vols label { flex: 1; display: flex; flex-direction: column; gap: 0; font-size: 13px; min-width: 0; }
+.vols input[type=range] { width: 100%; min-width: 0; min-height: 44px; accent-color: var(--or); }
+#settings .how { font-size: 13px; opacity: 0.85; text-align: center; }
+.fBtns { justify-content: space-between; }
+#tut .panel { max-height: calc(100dvh - 16px); overflow: auto; }
+body.sheet #start .startCard, body.sheet #start .titleBlock { visibility: hidden; }
+@media (max-width: 640px) {
+  .startCard { padding: 14px 12px 12px; }
+  #settings .panel, #tut .panel { min-width: 0; width: min(96vw, 460px); padding: 12px 14px; gap: 8px; }
+  .seg button { padding: 8px 10px; }
+  .tutGrid { grid-template-columns: 1fr; }
+}
+@media (max-height: 720px) and (max-aspect-ratio: 4/5) { .tag { display: none; } #settings .how, #settings .hint { display: none; } }
+@media (max-height: 600px) and (max-aspect-ratio: 4/5) { .kicker { display: none; } #btnPlay.play { min-height: 68px; } #tut .tutGrid span { font-size: 12px; } #tut .tutGrid div { padding: 7px 10px; } }
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+  .screen { padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .titleBlock { margin-top: 0; }
+  .title { font-size: clamp(40px, 9vw, 80px); }
+  #start .startCard { padding: 10px 14px; gap: 8px; }
+  #btnPlay.play { min-height: 60px; font-size: 28px; padding: 6px 44px; }
+  #start .best { display: none; }
+  #settings .panel { width: min(96vw, 780px); display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; row-gap: 8px; align-items: center; padding: 10px 16px; }
+  #settings .sheetHead, #settings .fBtns { grid-column: 1 / -1; }
+  #settings .grpL { grid-row: span 2; }
+  #settings .how, #settings .hint { display: none; }
+  #tut .tutGrid { grid-template-columns: 1fr 1fr; } #tut .tutGrid span { font-size: 12px; } #tut .tutGrid em { font-size: 20px; } #tut .panel { padding: 10px 16px; gap: 8px; }
+}
+@media (max-width: 480px) { #hud { padding-left: 8px; padding-right: 8px; } }
+@media (pointer: coarse) { .pill, .seg button, button.mid, .icon { min-height: 44px; } .icon { min-width: 44px; } }
+
+/* ---------- fit pass: sheets + help fit 320×568 and 568×320 without scrolling ---------- */
+.hdBtns { display: flex; gap: 8px; flex: none; }
+.hdBtns .xBtn { font-weight: 900; }
+.fKM { flex-wrap: nowrap; justify-content: flex-start; gap: 8px; }
+.fKM .pill { padding: 8px 12px; font-size: 14px; gap: 6px; white-space: nowrap; }
+.vols { flex-wrap: nowrap; gap: 14px; }
+.vols label { flex: 1; display: flex; flex-direction: column; gap: 0; font-size: 13px; min-width: 0; }
+.vols input[type=range] { width: 100%; min-width: 0; min-height: 44px; accent-color: var(--or); }
+@media (max-width: 400px) { .fQ > span { display: none; } .fQ { justify-content: center; } .seg button { padding: 8px 7px; font-size: 13px; } .sheetHead h2 { font-size: 17px; } }
+@media (max-height: 720px) { #settings .fBtns { display: none; } #settings .how, #settings .hint { display: none; } }
+@media (max-height: 720px) and (max-aspect-ratio: 4/5) {
+  #tut .panel { padding: 10px 12px; gap: 8px; } #tut h2 { font-size: 20px; } .tutGrid { gap: 6px; } .tutGrid div { padding: 7px 10px; }
+  .tutGrid b { margin-bottom: 2px; font-size: 14px; } .tutGrid span { font-size: 12.5px; line-height: 1.3; } .tutGrid em { font-size: 18px; }
+  #tut button.big { font-size: 20px; padding: 10px 22px; } .tutBtns { flex-wrap: nowrap; }
+}
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+  #tut .panel { width: min(96vw, 760px); max-width: none; padding: 8px 14px; gap: 6px; } #tut h2 { font-size: 18px; } .tutGrid { gap: 6px; } .tutGrid div { padding: 6px 10px; }
+  .tutGrid b { margin-bottom: 1px; font-size: 13px; } .tutGrid span { font-size: 12px; line-height: 1.25; } #tut button.big { font-size: 18px; padding: 8px 22px; } .tutBtns { flex-wrap: nowrap; }
+  .fQ > span { display: none; }
+}
+@media (max-width: 360px) { #start.screen { padding-left: 8px; padding-right: 8px; } #start .startCard { padding-left: 8px; padding-right: 8px; } #costumes { gap: 4px; } }
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+  #settings .panel { grid-template-areas: "h h" "lv two" "lv km" "q v"; grid-template-columns: 1fr 1fr; align-items: start; }
+  #settings .sheetHead { grid-area: h; } #settings .grpL { grid-area: lv; grid-row: auto; } #settings .grp2 { grid-area: two; } #settings .fKM { grid-area: km; } #settings .fQ { grid-area: q; } #settings .vols { grid-area: v; }
+  #settings .grp2 .names { flex: 1 1 100%; justify-content: flex-start; }
+}
+@media (max-height: 340px) and (min-aspect-ratio: 1/1) { #settings .vols { display: none; } #settings .panel { grid-template-areas: "h h" "lv two" "lv km" "q km"; } }
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) { #tut .tutGrid div { line-height: 1.2; } #tut .tutGrid span { font-size: 11.5px; line-height: 1.2; } #tut button.big { font-size: 16px; padding: 6px 18px; } #tut .tutBtns .pill { min-height: 44px; } }

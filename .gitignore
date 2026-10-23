@@ -1,1 +1,5 @@
 node_modules/
+test/shots/mobile/
+test/shots/
+test/results.txt
+package-lock.json

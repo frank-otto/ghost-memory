@@ -4,7 +4,7 @@ const STR = {
     kicker: 'A moonlit graveyard memory game', tag: 'Flip a gravestone, meet a ghost — and find its twin before the night is over!',
     play: 'PLAY', play2: '2 PLAYERS', how: '🖱️ Click or 📱 tap a gravestone to flip it &nbsp;·&nbsp; find the matching ghost pairs &nbsp;·&nbsp; ⌨️ arrows + Enter work too',
     howKids: '🖱️ Tap a gravestone &nbsp;·&nbsp; find two friendly ghosts that look the same &nbsp;·&nbsp; no hurry!',
-    kids: 'Kids mode', settings: '⚙ Settings', help: 'How to play', best: 'Best', quality: 'Quality', q_low: 'Low', q_mid: 'Medium', q_high: 'High', q_ultra: 'Ultra',
+    kids: 'Kids mode', settings: '⚙ Modes & options', settingsT: 'Modes & options', hintTap: 'Tap two gravestones 🪦🪦 – find the matching ghost pairs!', hintKeys: 'Click two gravestones 🪦🪦 (or arrows + Enter) – find the matching ghost pairs!', help: 'How to play', best: 'Best', quality: 'Quality', q_low: 'Low', q_mid: 'Medium', q_high: 'High', q_ultra: 'Ultra',
     music: 'Music', sfx: 'Sound effects', mute: 'Mute all', lang: 'Language', close: 'Done', suggested: 'Suggested', fpsLow: 'Low frame rate → quality', paused: 'Paused', resume: 'RESUME', quit: 'Quit game',
     tut1t: 'Flip', tut1: 'Click or tap a gravestone. A ghost rises from the grave!', tut2t: 'Match', tut2: 'Find the second ghost of the same kind. Pairs dance and fly to the stars.',
     tut3t: 'Combo', tut3: 'Pairs in a row give a combo bonus. Fewer moves = more stars.', tut4t: 'Twists', tut4: 'Later: a cheeky ghost swaps stones, fog rolls in, and a golden pumpkin pair hides somewhere.',
@@ -23,8 +23,8 @@ const STR = {
     kicker: 'Ein Memory auf dem Mondschein-Friedhof', tag: 'Dreh einen Grabstein um, triff einen Geist – und finde seinen Zwilling, bevor die Nacht vorbei ist!',
     play: 'SPIELEN', play2: '2 SPIELER', how: '🖱️ Klick oder 📱 tipp auf einen Grabstein &nbsp;·&nbsp; finde die passenden Geister-Paare &nbsp;·&nbsp; ⌨️ Pfeile + Enter gehen auch',
     howKids: '🖱️ Tipp auf einen Grabstein &nbsp;·&nbsp; finde zwei gleiche, freundliche Geister &nbsp;·&nbsp; ganz ohne Eile!',
-    kids: 'Kinder-Modus', settings: '⚙ Einstellungen', help: 'Spielanleitung', best: 'Rekord', quality: 'Qualität', q_low: 'Niedrig', q_mid: 'Mittel', q_high: 'Hoch', q_ultra: 'Ultra',
-    music: 'Musik', sfx: 'Effekte', mute: 'Alles stumm', lang: 'Sprache', close: 'Fertig', suggested: 'Empfohlen', fpsLow: 'Niedrige Bildrate → Qualität', paused: 'Pause', resume: 'WEITER', quit: 'Spiel beenden',
+    kids: 'Kinder-Modus', settings: '⚙ Modi & Optionen', settingsT: 'Modi & Optionen', hintTap: 'Tipp auf zwei Grabsteine 🪦🪦 – finde die passenden Geister-Paare!', hintKeys: 'Klick zwei Grabsteine 🪦🪦 an (oder Pfeile + Enter) – finde die passenden Geister-Paare!', help: 'Spielanleitung', best: 'Rekord', quality: 'Qualität', q_low: 'Niedrig', q_mid: 'Mittel', q_high: 'Hoch', q_ultra: 'Ultra',
+    music: 'Musik', sfx: 'Effekte', mute: 'Ton aus', lang: 'Sprache', close: 'Fertig', suggested: 'Empfohlen', fpsLow: 'Niedrige Bildrate → Qualität', paused: 'Pause', resume: 'WEITER', quit: 'Spiel beenden',
     tut1t: 'Umdrehen', tut1: 'Klick oder tipp auf einen Grabstein. Ein Geist steigt aus dem Grab!', tut2t: 'Paare', tut2: 'Finde den zweiten Geist derselben Art. Paare tanzen und fliegen zu den Sternen.',
     tut3t: 'Kombo', tut3: 'Paare hintereinander geben Kombo-Bonus. Weniger Züge = mehr Sterne.', tut4t: 'Überraschungen', tut4: 'Später: ein frecher Geist vertauscht Steine, Nebel zieht auf und ein goldenes Kürbis-Paar versteckt sich.',
     tutGo: 'Alles klar – LOS!', tutSkip: 'Überspringen',
@@ -48,9 +48,11 @@ export const RANKS = [
   { min: 24000, en: 'Ghost Genius', de: 'Geister-Genie' }
 ];
 let lang = 'en';
-try { lang = localStorage.getItem('gm-lang') || 'en'; } catch (e) {}
+// auto language: a saved choice wins, otherwise DE for de* browsers, EN for everything else
+export function autoLang() { try { const l = (navigator.languages && navigator.languages[0]) || navigator.language || ''; return /^de\b/i.test(l) ? 'de' : 'en'; } catch (e) { return 'en'; } }
+try { lang = localStorage.getItem('gm-lang') || autoLang(); } catch (e) { lang = autoLang(); }
 export function getLang() { return lang; }
-export function setLang(l) { lang = l === 'de' ? 'de' : 'en'; try { localStorage.setItem('gm-lang', lang); } catch (e) {} document.documentElement.lang = lang; }
+export function setLang(l, save = true) { lang = l === 'de' ? 'de' : 'en'; if (save) try { localStorage.setItem('gm-lang', lang); } catch (e) {} document.documentElement.lang = lang; }
 export function T(k, l = lang) { return (STR[l] && STR[l][k]) ?? STR.en[k] ?? k; }
 export function rankFor(score, l = lang) { let r = RANKS[0]; for (const x of RANKS) if (score >= x.min) r = x; return r[l]; }
 export function applyI18n(kids) {

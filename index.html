@@ -44,34 +44,30 @@
     <div class="tag" data-i18n="tag"></div>
   </div>
   <div class="startCard glass">
-    <div class="lblRow" data-i18n="level">Level</div>
-    <div class="levels" id="levels"></div>
-    <div class="modeRow"><button id="btnPlay" class="big"><span data-i18n="play">PLAY</span></button><button id="btnPlay2" class="big"><span data-i18n="play2">2 PLAYERS</span></button></div>
-    <div class="names"><span data-i18n="mode2">2-player names</span><input id="n1" maxlength="14" value="Player 1"><span data-i18n="vs">vs</span><input id="n2" maxlength="14" value="Player 2"></div>
-    <div class="how" data-i18n-html="how"></div>
-    <div class="row">
-      <label class="pill"><input type="checkbox" id="chkKids"><span data-i18n="kids">Kids mode</span></label>
+    <button id="btnPlay" class="big play"><span data-i18n="play">PLAY</span><em id="playL"></em></button>
+    <div class="row startRow">
+      <button id="btnSettings" class="pill" aria-haspopup="dialog" aria-expanded="false"><span data-i18n="settings">⚙ Modes &amp; options</span></button>
       <div class="seg" id="langSeg"><button data-lang="en">EN</button><button data-lang="de">DE</button></div>
-      <button id="btnSettings" class="pill" data-i18n="settings">⚙ Settings</button>
-      <button id="btnHelp" class="pill">? <span data-i18n="help">How to play</span></button>
     </div>
     <div class="best"><span data-i18n="best">Best</span>: <b id="bestStart">0</b></div>
   </div>
 </div>
 
-<div id="settings" class="modal hidden">
+<div id="settings" class="modal hidden" role="dialog" aria-labelledby="setT">
   <div class="glass panel">
-    <h2 data-i18n="settings">Settings</h2>
-    <div class="field"><span data-i18n="quality">Quality</span>
+    <div class="sheetHead"><h2 id="setT" data-i18n="settingsT">Modes &amp; options</h2><div class="hdBtns"><button id="btnHelp" class="icon xBtn" aria-label="How to play" title="How to play">?</button><button id="btnSetX" class="icon xBtn" aria-label="Close">✕</button></div></div>
+    <div class="grpL"><div class="lblRow" data-i18n="level">Level</div><div class="levels" id="levels"></div></div>
+    <div class="grp2"><button id="btnPlay2" class="mid"><span data-i18n="play2">2 PLAYERS</span></button>
+      <div class="names"><input id="n1" maxlength="14" value="Player 1" aria-label="Player 1"><span data-i18n="vs">vs</span><input id="n2" maxlength="14" value="Player 2" aria-label="Player 2"></div></div>
+    <div class="field fKM"><label class="pill"><input type="checkbox" id="chkKids"><span data-i18n="kids">Kids mode</span></label>
+      <label class="pill"><input type="checkbox" id="chkMute"><span data-i18n="mute">Mute all</span></label></div>
+    <div class="field fQ"><span data-i18n="quality">Quality</span>
       <div class="seg" id="qualSeg"><button data-q="low" data-i18n="q_low">Low</button><button data-q="mid" data-i18n="q_mid">Medium</button><button data-q="high" data-i18n="q_high">High</button><button data-q="ultra" data-i18n="q_ultra">Ultra</button></div>
     </div>
     <div class="hint" id="qualHint"></div>
-    <div class="field"><span data-i18n="music">Music</span><input type="range" id="volMusic" min="0" max="100" value="60"></div>
-    <div class="field"><span data-i18n="sfx">Sound effects</span><input type="range" id="volSfx" min="0" max="100" value="90"></div>
-    <div class="field"><label class="pill"><input type="checkbox" id="chkMute"><span data-i18n="mute">Mute all</span></label>
-      <label class="pill"><input type="checkbox" id="chkKids2"><span data-i18n="kids">Kids mode</span></label></div>
-    <div class="field"><span data-i18n="lang">Language</span><div class="seg" id="langSeg2"><button data-lang="en">EN</button><button data-lang="de">DE</button></div></div>
-    <button id="btnCloseSettings" class="mid" data-i18n="close">Done</button>
+    <div class="field vols"><label><span data-i18n="music">Music</span><input type="range" id="volMusic" min="0" max="100" value="60"></label><label><span data-i18n="sfx">Sound effects</span><input type="range" id="volSfx" min="0" max="100" value="90"></label></div>
+    <div class="how" data-i18n-html="how"></div>
+    <div class="field fBtns"><button id="btnCloseSettings" class="mid" data-i18n="close">Done</button></div>
   </div>
 </div>
 
@@ -126,6 +122,7 @@
   </div>
 </div>
 <div id="toast"></div>
+<div id="hint" aria-live="polite"></div>
 
 <script src="js/sounds-src.js"></script>
 <script src="js/game.bundle.js"></script>
